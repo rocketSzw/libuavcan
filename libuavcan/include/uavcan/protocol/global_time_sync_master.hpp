@@ -14,6 +14,7 @@
 #include <uavcan/debug.hpp>
 #include <cstdlib>
 #include <cassert>
+#include <uORB/Subscription.hpp>
 
 namespace uavcan
 {
@@ -74,7 +75,7 @@ class UAVCAN_EXPORT GlobalTimeSyncMaster : protected LoopbackFrameListenerBase
             prev_tx_utc_ = ts;
         }
 
-        int publish(TransferID tid, MonotonicTime current_time)
+        int publish(TransferID tid, MonotonicTime current_time, float uavcaninfo[])
         {
             UAVCAN_ASSERT(pub_.getTransferSender().getCanIOFlags() == CanIOFlagLoopback);
             UAVCAN_ASSERT(pub_.getTransferSender().getIfaceMask() == (1 << iface_index_));
@@ -86,11 +87,51 @@ class UAVCAN_EXPORT GlobalTimeSyncMaster : protected LoopbackFrameListenerBase
 
             protocol::GlobalTimeSync msg;
             msg.previous_transmission_timestamp_usec = long_period ? 0 : prev_tx_utc_.toUSec();
+            msg.mc_roll_sp = uavcaninfo[0];
+            msg.mc_pitch_sp = uavcaninfo[1];
+            msg.mc_yaw_sp = uavcaninfo[2];
+            msg.mc_yawrate_sp = uavcaninfo[3];
+            msg.mc_qd[0] = uavcaninfo[4];
+            msg.mc_qd[1] = uavcaninfo[5];
+            msg.mc_qd[2] = uavcaninfo[6];
+            msg.mc_qd[3] = uavcaninfo[7];
+            msg.mc_reset_integral = (uint16_t)uavcaninfo[8];
+            msg.mc_fw_control_yaw_wheel = (uint16_t)uavcaninfo[9];
+
+            msg.fw_roll_sp = uavcaninfo[10];
+            msg.fw_yaw_sp = uavcaninfo[11];
+            msg.fw_altitude = uavcaninfo[12];
+            msg.fw_altitude_sp = uavcaninfo[13];
+            msg.fw_altitude_rate_sp = uavcaninfo[14];
+            msg.fw_altitude_rate_sp_direct = uavcaninfo[15];
+            msg.fw_tas_sp = uavcaninfo[16];
+            msg.fw_preserve1 = uavcaninfo[17];
+            msg.fw_preserve2 = uavcaninfo[18];
+            msg.fw_preserve3 = uavcaninfo[19];
+
+            msg.timesync_is_fixed_wing_requested = (int16_t)uavcaninfo[20];
+            msg.timesync_is_transition_p1_to_p2 = (int16_t)uavcaninfo[21];
+            msg.timesync_exit_backtransition = (int16_t)uavcaninfo[22];
+            msg.q1 = uavcaninfo[23];
+            msg.yawrates_sp_from_rates_ctrl = uavcaninfo[24];
+
+            msg.yaw_unlock_sync_1 = uavcaninfo[25];
+            msg.yaw_unlock_sync_2 = uavcaninfo[26];
+            msg.yaw_unlock_sync_3 = uavcaninfo[27];
+            msg.yaw_unlock_sync_4 = uavcaninfo[28];
+            msg.yaw_unlock_sync_5 = uavcaninfo[29];
+            msg.yaw_unlock_sync_6 = uavcaninfo[30];
+            msg.yaw_unlock_sync_7 = uavcaninfo[31];
+            msg.yaw_unlock_sync_8 = uavcaninfo[32];
+            msg.yaw_unlock_sync_9 = uavcaninfo[33];
+            msg.yaw_unlock_sync_10 = uavcaninfo[34];
+
             prev_tx_utc_ = UtcTime();
 
             UAVCAN_TRACE("GlobalTimeSyncMaster", "Publishing %llu iface=%i tid=%i",
-                         static_cast<unsigned long long>(msg.previous_transmission_timestamp_usec),
-                         int(iface_index_), int(tid.get()));
+                        static_cast<unsigned long long>(msg.previous_transmission_timestamp_usec),
+                        int(iface_index_), int(tid.get()));
+
             return pub_.broadcast(msg, tid);
         }
     };
@@ -207,7 +248,7 @@ public:
      *
      * Returns negative error code.
      */
-    int publish()
+    int publish(float uavcaninfo[])
     {
         if (!initialized_)
         {
@@ -247,7 +288,7 @@ public:
 
         for (uint8_t i = 0; i < node_.getDispatcher().getCanIOManager().getNumIfaces(); i++)
         {
-            const int res = iface_masters_[i]->publish(tid, current_time);
+            const int res = iface_masters_[i]->publish(tid, current_time, &uavcaninfo[0]);
             if (res < 0)
             {
                 return res;

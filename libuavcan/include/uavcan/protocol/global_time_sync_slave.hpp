@@ -9,6 +9,7 @@
 #include <uavcan/util/method_binder.hpp>
 #include <uavcan/protocol/GlobalTimeSync.hpp>
 #include <uavcan/debug.hpp>
+#include "drivers/uavcan/master_slave.hpp"
 #include <cassert>
 
 namespace uavcan
@@ -32,7 +33,6 @@ class UAVCAN_EXPORT GlobalTimeSyncSlave : Noncopyable
         GlobalTimeSyncCallback;
 
     Subscriber<protocol::GlobalTimeSync, GlobalTimeSyncCallback> sub_;
-
     UtcTime prev_ts_utc_;
     MonotonicTime prev_ts_mono_;
     MonotonicTime last_adjustment_ts_;
@@ -72,6 +72,45 @@ class UAVCAN_EXPORT GlobalTimeSyncSlave : Noncopyable
         prev_iface_index_ = msg.getIfaceIndex();
         prev_tid_         = msg.getTransferID();
         state_            = Adjust;
+
+        uavcan_mc_roll_sp=msg.mc_roll_sp;
+        uavcan_mc_pitch_sp=msg.mc_pitch_sp;
+        uavcan_mc_yaw_sp=msg.mc_yaw_sp;
+        uavcan_mc_yawrate_sp=msg.mc_yawrate_sp;
+        uavcan_mc_qd[0]=msg.mc_qd[0];
+        uavcan_mc_qd[1]=msg.mc_qd[1];
+        uavcan_mc_qd[2]=msg.mc_qd[2];
+        uavcan_mc_qd[3]=msg.mc_qd[3];
+        uavcan_mc_reset_integral=msg.mc_reset_integral;
+        uavcan_mc_fw_control_yaw_wheel=msg.mc_fw_control_yaw_wheel;
+
+        uavcan_fw_roll_sp=msg.fw_roll_sp;
+        uavcan_fw_yaw_sp=msg.fw_yaw_sp;
+        uavcan_fw_altitude=msg.fw_altitude;
+        uavcan_fw_altitude_sp=msg.fw_altitude_sp;
+        uavcan_fw_altitude_rate_sp=msg.fw_altitude_rate_sp;
+        uavcan_fw_altitude_rate_sp_direct=msg.fw_altitude_rate_sp_direct;
+        uavcan_fw_tas_sp=msg.fw_tas_sp;
+        uavcan_fw_preserve1=msg.fw_preserve1;
+        uavcan_fw_preserve2=msg.fw_preserve2;
+        uavcan_fw_preserve3=msg.fw_preserve3;
+
+        uavcan_q1 = msg.q1;
+        uavcan_sync_is_fixed_wing_requested = msg.timesync_is_fixed_wing_requested;
+        uavcan_sync_is_transition_p1_to_p2 = msg.timesync_is_transition_p1_to_p2;
+        uavcan_sync_exit_backtransition = msg.timesync_exit_backtransition;
+        uavcan_yawrates_sp_from_rates_ctrl = msg.yawrates_sp_from_rates_ctrl;
+
+        uavcan_yaw_unlock_sync_1 = msg.yaw_unlock_sync_1;
+        uavcan_yaw_unlock_sync_2 = msg.yaw_unlock_sync_2;
+        uavcan_yaw_unlock_sync_3 = msg.yaw_unlock_sync_3;
+        uavcan_yaw_unlock_sync_4 = msg.yaw_unlock_sync_4;
+        uavcan_yaw_unlock_sync_5 = msg.yaw_unlock_sync_5;
+        uavcan_yaw_unlock_sync_6 = msg.yaw_unlock_sync_6;
+        uavcan_yaw_unlock_sync_7 = msg.yaw_unlock_sync_7;
+        uavcan_yaw_unlock_sync_8 = msg.yaw_unlock_sync_8;
+        uavcan_yaw_unlock_sync_9 = msg.yaw_unlock_sync_9;
+        uavcan_yaw_unlock_sync_10 = msg.yaw_unlock_sync_10;
     }
 
     void processMsg(const ReceivedDataStructure<protocol::GlobalTimeSync>& msg)
@@ -150,6 +189,42 @@ public:
     {
         return sub_.start(GlobalTimeSyncCallback(this, &GlobalTimeSyncSlave::handleGlobalTimeSync));
     }
+
+    float uavcan_mc_roll_sp=0.0f;
+    float uavcan_mc_pitch_sp=0.0f;
+    float uavcan_mc_yaw_sp=0.0f;
+    float uavcan_mc_yawrate_sp=0.0f;
+    float uavcan_mc_qd[4]={0.0f,0.0f,0.0f, 0.0f};
+    uint16_t  uavcan_mc_reset_integral=0;
+    uint16_t  uavcan_mc_fw_control_yaw_wheel=0;
+
+    float uavcan_fw_roll_sp=0.0f;
+    float uavcan_fw_yaw_sp=0.0f;
+    float uavcan_fw_altitude=0.0f;
+    float uavcan_fw_altitude_sp=0.0f;
+    float uavcan_fw_altitude_rate_sp=0.0f;
+    float uavcan_fw_altitude_rate_sp_direct=0.0f;
+    float uavcan_fw_tas_sp=0.0f;
+    float uavcan_fw_preserve1=0;
+    float uavcan_fw_preserve2=0;
+    int16_t uavcan_fw_preserve3=0;
+
+    float uavcan_q1 = 0.0f;
+    int16_t uavcan_sync_is_fixed_wing_requested = 0;
+    int16_t uavcan_sync_is_transition_p1_to_p2 = 0;
+    int16_t uavcan_sync_exit_backtransition = 0;
+    float uavcan_yawrates_sp_from_rates_ctrl = 0.0f;
+
+    float uavcan_yaw_unlock_sync_1 = 0.0f;
+    float uavcan_yaw_unlock_sync_2 = 0.0f;
+    float uavcan_yaw_unlock_sync_3 = 0.0f;
+    float uavcan_yaw_unlock_sync_4 = 0.0f;
+    float uavcan_yaw_unlock_sync_5 = 0.0f;
+    float uavcan_yaw_unlock_sync_6 = 0.0f;
+    float uavcan_yaw_unlock_sync_7 = 0.0f;
+    float uavcan_yaw_unlock_sync_8 = 0.0f;
+    float uavcan_yaw_unlock_sync_9 = 0.0f;
+    float uavcan_yaw_unlock_sync_10 = 0.0f;
 
     /**
      * Enable or disable the suppressed mode.
