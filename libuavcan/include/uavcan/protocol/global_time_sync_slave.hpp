@@ -9,7 +9,7 @@
 #include <uavcan/util/method_binder.hpp>
 #include <uavcan/protocol/GlobalTimeSync.hpp>
 #include <uavcan/debug.hpp>
-#include "drivers/uavcan/master_slave.hpp"
+#include <modules/master_slave/master_slave.h>
 #include <cassert>
 
 namespace uavcan
